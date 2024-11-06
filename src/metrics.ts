@@ -37,7 +37,7 @@ interface Payload {
 type OnError = (error: unknown) => void;
 type OnSent = (payload: Payload) => void;
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const doNothing = () => {};
+const doNothing = () => { };
 
 export default class Metrics {
     private onError: OnError;
@@ -148,7 +148,7 @@ export default class Metrics {
                 body: JSON.stringify(payload),
             });
             this.onSent(payload);
-        } catch (e) {
+        } catch (e: unknown) {
             console.error('Unleash: unable to send feature metrics', e);
             this.onError(e);
         }

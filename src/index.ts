@@ -1,3 +1,5 @@
+// TODO: 코드정리(파일 하나에 모두 몰아넣은 상태임.)
+
 import { TinyEmitter } from 'tiny-emitter';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
@@ -605,7 +607,7 @@ export class UnleashClient extends TinyEmitter {
                         code: response.status,
                     };
                 }
-            } catch (e) {
+            } catch (e: unknown) {
                 if (
                     !(
                         typeof e === 'object' &&

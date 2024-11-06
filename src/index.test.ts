@@ -1821,7 +1821,7 @@ test('should be in ready state if bootstrapping', (done) => {
                 impressionData: false,
             },
         ],
-        fetch: async () => {},
+        fetch: async () => { },
     };
 
     const client = new UnleashClient(config);
