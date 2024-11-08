@@ -12,8 +12,8 @@ export default class LocalStorageProvider implements IStorageProvider {
         const key = `${this.prefix}:${name}`;
         try {
             window.localStorage.setItem(key, repo);
-        } catch (e: unknown) {
-            console.error(e);
+        } catch (error: unknown) {
+            console.error(error);
         }
     }
 
@@ -22,8 +22,8 @@ export default class LocalStorageProvider implements IStorageProvider {
             const key = `${this.prefix}:${name}`;
             const data = window.localStorage.getItem(key);
             return data ? JSON.parse(data) : undefined;
-        } catch (e: unknown) {
-            console.error(e);
+        } catch (error: unknown) {
+            console.error(error);
         }
     }
 }

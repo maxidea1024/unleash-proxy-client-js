@@ -122,8 +122,8 @@ export const resolveFetch = () => {
         if ('fetch' in globalThis) {
             return fetch.bind(globalThis);
         }
-    } catch (e) {
-        console.error('Unleash failed to resolve "fetch"', e);
+    } catch (error: unknown) {
+        console.error('Unleash failed to resolve "fetch"', error);
     }
 
     return undefined;
@@ -138,8 +138,8 @@ const resolveAbortController = () => {
         if ('fetch' in globalThis) {
             return () => new globalThis.AbortController();
         }
-    } catch (e) {
-        console.error('Unleash failed to resolve "AbortController" factory', e);
+    } catch (error: unknown) {
+        console.error('Unleash failed to resolve "AbortController" factory', error);
     }
 };
 
@@ -195,16 +195,20 @@ export class UnleashClient extends TinyEmitter {
         experimental,
     }: IConfig) {
         super();
+
         // Validations
         if (!url) {
             throw new Error('url is required');
         }
+
         if (!clientKey) {
             throw new Error('clientKey is required');
         }
+
         if (!appName) {
             throw new Error('appName is required.');
         }
+
         this.eventsHandler = new EventsHandler();
         this.impressionDataAll = impressionDataAll;
         this.toggles = bootstrap && bootstrap.length > 0 ? bootstrap : [];
@@ -321,6 +325,7 @@ export class UnleashClient extends TinyEmitter {
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
+
         return { ...variant, feature_enabled: enabled };
     }
 

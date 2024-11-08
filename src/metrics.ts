@@ -148,9 +148,9 @@ export default class Metrics {
                 body: JSON.stringify(payload),
             });
             this.onSent(payload);
-        } catch (e: unknown) {
-            console.error('Unleash: unable to send feature metrics', e);
-            this.onError(e);
+        } catch (error: unknown) {
+            console.error('Unleash: unable to send feature metrics', error);
+            this.onError(error);
         }
     }
 
