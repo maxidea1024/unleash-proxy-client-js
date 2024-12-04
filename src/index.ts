@@ -123,7 +123,7 @@ export const resolveFetch = () => {
       return fetch.bind(globalThis);
     }
   } catch (error: unknown) {
-    console.error('Unleash failed to resolve "fetch"', error);
+    console.error('Ganpa failed to resolve "fetch"', error);
   }
 
   return undefined;
@@ -139,7 +139,7 @@ const resolveAbortController = () => {
       return () => new globalThis.AbortController();
     }
   } catch (error: unknown) {
-    console.error('Unleash failed to resolve "AbortController" factory', error);
+    console.error('Ganpa failed to resolve "AbortController" factory', error);
   }
 };
 
@@ -252,12 +252,13 @@ export class UnleashClient extends TinyEmitter {
 
     if (!fetch) {
       console.error(
-        'Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
+        'Ganpa: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
       );
     }
+
     if (!createAbortController) {
       console.error(
-        'Unleash: You must either provide your own "AbortController" implementation or run in an environment where "AbortController" is available.'
+        'Ganpa: You must either provide your own "AbortController" implementation or run in an environment where "AbortController" is available.'
       );
     }
 
@@ -281,11 +282,11 @@ export class UnleashClient extends TinyEmitter {
     });
   }
 
-  public getAllToggles(): IToggle[] {
+  getAllToggles(): IToggle[] {
     return [...this.toggles];
   }
 
-  public isEnabled(toggleName: string): boolean {
+  isEnabled(toggleName: string): boolean {
     const toggle = this.toggles.find((t) => t.name === toggleName);
     const enabled = toggle ? toggle.enabled : false;
     this.metrics.count(toggleName, enabled);
@@ -304,7 +305,7 @@ export class UnleashClient extends TinyEmitter {
     return enabled;
   }
 
-  public getVariant(toggleName: string): IVariant {
+  getVariant(toggleName: string): IVariant {
     const toggle = this.toggles.find((t) => t.name === toggleName);
     const enabled = toggle?.enabled || false;
     const variant = toggle ? toggle.variant : defaultVariant;
@@ -313,6 +314,7 @@ export class UnleashClient extends TinyEmitter {
       this.metrics.countVariant(toggleName, variant.name);
     }
     this.metrics.count(toggleName, enabled);
+
     if (toggle?.impressionData || this.impressionDataAll) {
       const event = this.eventsHandler.createImpressionEvent(
         this.context,
@@ -328,10 +330,13 @@ export class UnleashClient extends TinyEmitter {
     return { ...variant, feature_enabled: enabled };
   }
 
-  public async updateToggles() {
+  async updateToggles() {
     if (this.timerRef || this.fetchedFromServer) {
       await this.fetchToggles();
-    } else if (this.started) {
+      return;
+    }
+
+    if (this.started) {
       await new Promise<void>((resolve) => {
         const listener = () => {
           this.fetchToggles().then(() => {
@@ -344,7 +349,7 @@ export class UnleashClient extends TinyEmitter {
     }
   }
 
-  public async updateContext(context: IMutableContext): Promise<void> {
+  async updateContext(context: IMutableContext): Promise<void> {
     // @ts-expect-error Give the user a nicer error message when
     // including static fields in the mutable context object
     if (context.appName || context.environment) {
@@ -362,11 +367,11 @@ export class UnleashClient extends TinyEmitter {
     await this.updateToggles();
   }
 
-  public getContext() {
+  getContext() {
     return { ...this.context };
   }
 
-  public setContextField(field: string, value: string) {
+  setContextField(field: string, value: string) {
     if (isDefinedContextField(field)) {
       this.context = { ...this.context, [field]: value };
     } else {
@@ -377,7 +382,7 @@ export class UnleashClient extends TinyEmitter {
     this.updateToggles();
   }
 
-  public removeContextField(field: string): void {
+  removeContextField(field: string): void {
     if (isDefinedContextField(field)) {
       this.context = { ...this.context, [field]: undefined };
     } else if (typeof this.context.properties === 'object') {
@@ -417,42 +422,50 @@ export class UnleashClient extends TinyEmitter {
     this.emit(EVENTS.INIT);
   }
 
-  public async start(): Promise<void> {
+  async start(): Promise<void> {
     this.started = true;
+
     if (this.timerRef) {
       console.error(
-        'Unleash SDK has already started, if you want to restart the SDK you should call client.stop() before starting again.'
+        'Ganpa SDK has already started, if you want to restart the SDK you should call client.stop() before starting again.'
       );
       return;
     }
+
     await this.ready;
+
     this.metrics.start();
-    const interval = this.refreshInterval;
 
     await this.initialFetchToggles();
 
-    if (interval > 0) {
-      this.timerRef = setInterval(() => this.fetchToggles(), interval);
+    // refreshInteval이 적용된 경우에는 일정주기마다 edge/proxy 서버에서 플래그들을 가져온다.
+    if (this.refreshInterval > 0) {
+      this.timerRef = setInterval(
+        () => this.fetchToggles(),
+        this.refreshInterval
+      );
     }
   }
 
-  public stop(): void {
+  stop(): void {
     if (this.timerRef) {
       clearInterval(this.timerRef);
       this.timerRef = undefined;
     }
+
     this.metrics.stop();
   }
 
-  public isReady(): boolean {
+  isReady(): boolean {
     return this.readyEventEmitted;
   }
 
-  public getError() {
+  getError() {
     return this.sdkState === 'error' ? this.lastError : undefined;
   }
 
-  public sendMetrics() {
+  // CHECKME: 일정주기마다 수동으로 보내줘야만 하는건가?
+  sendMetrics() {
     return this.metrics.sendMetrics();
   }
 
@@ -466,6 +479,7 @@ export class UnleashClient extends TinyEmitter {
       sessionId = Math.floor(Math.random() * 1_000_000_000);
       await this.storage.save('sessionId', sessionId.toString(10));
     }
+
     return sessionId.toString(10);
   }
 
@@ -475,15 +489,19 @@ export class UnleashClient extends TinyEmitter {
       [this.headerName]: this.clientKey,
       Accept: 'application/json',
     };
+
     if (isPOST) {
       headers['Content-Type'] = 'application/json';
     }
+
     if (this.etag) {
       headers['If-None-Match'] = this.etag;
     }
+
     Object.entries(this.customHeaders)
       .filter(notNullOrUndefined)
       .forEach(([name, value]) => (headers[name] = value));
+
     return headers;
   }
 
@@ -504,10 +522,9 @@ export class UnleashClient extends TinyEmitter {
     if (!this.isTogglesStorageTTLEnabled()) {
       return false;
     }
+
     const now = Date.now();
-
     const ttl = this.experimental?.togglesStorageTTL || 0;
-
     return (
       this.lastRefreshTimestamp > 0 &&
       this.lastRefreshTimestamp <= now &&
@@ -522,6 +539,7 @@ export class UnleashClient extends TinyEmitter {
       const contextHash = await computeContextHashValue(this.context);
       return lastRefresh?.key === contextHash ? lastRefresh.timestamp : 0;
     }
+
     return 0;
   }
 
@@ -533,6 +551,7 @@ export class UnleashClient extends TinyEmitter {
         key: await computeContextHashValue(this.context),
         timestamp: this.lastRefreshTimestamp,
       };
+
       await this.storage.save(lastUpdateKey, lastUpdateValue);
     }
   }
@@ -545,6 +564,7 @@ export class UnleashClient extends TinyEmitter {
       }
       return;
     }
+
     return this.fetchToggles();
   }
 
@@ -553,6 +573,7 @@ export class UnleashClient extends TinyEmitter {
       if (this.abortController) {
         this.abortController.abort();
       }
+
       this.abortController = this.createAbortController?.();
       const signal = this.abortController
         ? this.abortController.signal
@@ -598,7 +619,7 @@ export class UnleashClient extends TinyEmitter {
           this.storeLastRefreshTimestamp();
         } else {
           console.error(
-            'Unleash: Fetching feature toggles did not have an ok response'
+            'Ganpa: Fetching feature toggles did not have an ok response'
           );
           this.sdkState = 'error';
           this.emit(EVENTS.ERROR, {
@@ -620,7 +641,7 @@ export class UnleashClient extends TinyEmitter {
             e.name === 'AbortError'
           )
         ) {
-          console.error('Unleash: unable to fetch feature toggles', e);
+          console.error('Ganpa: unable to fetch feature toggles', e);
           this.sdkState = 'error';
           this.emit(EVENTS.ERROR, e);
           this.lastError = e;

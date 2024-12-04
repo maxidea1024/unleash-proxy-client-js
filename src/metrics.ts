@@ -81,7 +81,7 @@ export default class Metrics {
     this.customHeaders = customHeaders;
   }
 
-  public start() {
+  start() {
     if (this.disabled) {
       return false;
     }
@@ -98,14 +98,14 @@ export default class Metrics {
     }
   }
 
-  public stop() {
+  stop() {
     if (this.timer) {
       clearTimeout(this.timer);
       delete this.timer;
     }
   }
 
-  public createEmptyBucket(): Bucket {
+  createEmptyBucket(): Bucket {
     return {
       start: new Date(),
       stop: null,
@@ -127,7 +127,7 @@ export default class Metrics {
     return headers;
   }
 
-  public async sendMetrics(): Promise<void> {
+  async sendMetrics(): Promise<void> {
     /* istanbul ignore next if */
 
     const url = `${this.url}/client/metrics`;
@@ -151,25 +151,29 @@ export default class Metrics {
     }
   }
 
-  public count(name: string, enabled: boolean): boolean {
+  count(name: string, enabled: boolean): boolean {
     if (this.disabled || !this.bucket) {
       return false;
     }
+
     this.assertBucket(name);
     this.bucket.toggles[name][enabled ? 'yes' : 'no']++;
+
     return true;
   }
 
-  public countVariant(name: string, variant: string): boolean {
+  countVariant(name: string, variant: string): boolean {
     if (this.disabled || !this.bucket) {
       return false;
     }
+
     this.assertBucket(name);
     if (this.bucket.toggles[name].variants[variant]) {
       this.bucket.toggles[name].variants[variant] += 1;
     } else {
       this.bucket.toggles[name].variants[variant] = 1;
     }
+
     return true;
   }
 
@@ -177,6 +181,7 @@ export default class Metrics {
     if (this.disabled || !this.bucket) {
       return false;
     }
+
     if (!this.bucket.toggles[name]) {
       this.bucket.toggles[name] = {
         yes: 0,

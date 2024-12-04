@@ -3,18 +3,19 @@ import type IStorageProvider from './storage-provider';
 export default class LocalStorageProvider implements IStorageProvider {
   private readonly prefix: string;
 
-  constructor(name = 'unleash:repository') {
+  constructor(name = 'ganpa:repository') {
     this.prefix = name;
   }
 
   async save(name: string, data: any) {
-    const repo = JSON.stringify(data);
+    const jsonData = JSON.stringify(data);
     const key = `${this.prefix}:${name}`;
     try {
-      window.localStorage.setItem(key, repo);
+      window.localStorage.setItem(key, jsonData);
     } catch (error: unknown) {
       console.error(error);
     }
+    return Promise.resolve();
   }
 
   get(name: string) {
