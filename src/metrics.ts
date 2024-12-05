@@ -123,9 +123,12 @@ export default class Metrics {
       'Content-Type': 'application/json',
     };
 
-    Object.entries(this.customHeaders)
-      .filter(notNullOrUndefined)
-      .forEach(([name, value]) => (headers[name] = value)); // FIXME: assignment operator
+    for (const kvp of Object.entries(this.customHeaders)) {
+      if (notNullOrUndefined(kvp)) {
+        headers[kvp[0]] = kvp[1];
+      }
+    }
+
     return headers;
   }
 
