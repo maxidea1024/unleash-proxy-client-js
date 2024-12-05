@@ -129,11 +129,11 @@ test('Should handle error and return false for isEnabled', async () => {
   fetchMock.mockReject();
 
   class Store implements IStorageProvider {
-    public async save() {
+    async save() {
       return Promise.resolve();
     }
 
-    public async get() {
+    async get() {
       return Promise.resolve([]);
     }
   }
@@ -157,11 +157,11 @@ test('Should read session id from localStorage', async () => {
   fetchMock.mockReject();
 
   class Store implements IStorageProvider {
-    public async save() {
+    async save() {
       return Promise.resolve();
     }
 
-    public async get(name: string) {
+    async get(name: string) {
       if (name === 'sessionId') {
         return sessionId;
       }
@@ -187,11 +187,11 @@ test('Should send sessionId as string, even if it was saved a number', async () 
   fetchMock.mockReject();
 
   class Store implements IStorageProvider {
-    public async save() {
+    async save() {
       return Promise.resolve();
     }
 
-    public async get(name: string) {
+    async get(name: string) {
       if (name === 'sessionId') {
         return sessionId;
       }
@@ -227,16 +227,15 @@ test('Should read toggles from localStorage', async () => {
   fetchMock.mockReject();
 
   class Store implements IStorageProvider {
-    public async save() {
+    async save() {
       return Promise.resolve();
     }
 
-    public async get(name: string) {
+    async get(name: string) {
       if (name === 'repo') {
         return Promise.resolve(toggles);
-      } else {
-        return Promise.resolve(undefined);
       }
+      return Promise.resolve(undefined);
     }
   }
 
@@ -588,11 +587,12 @@ test('Should publish error when initial init fails', (done) => {
   const givenError = 'Error';
 
   class Store implements IStorageProvider {
-    public async save(): Promise<void> {
+    async save(): Promise<void> {
       return Promise.reject(givenError);
     }
 
-    public async get(): Promise<any> {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    async get(): Promise<any> {
       return Promise.reject(givenError);
     }
   }
@@ -609,6 +609,7 @@ test('Should publish error when initial init fails', (done) => {
   };
   const client = new UnleashClient(config);
   client.start();
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   client.on(EVENTS.ERROR, (e: any) => {
     expect(e).toBe(givenError);
     done();
@@ -628,6 +629,7 @@ test('Should publish error when fetch fails', (done) => {
   };
   const client = new UnleashClient(config);
   client.start();
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   client.on(EVENTS.ERROR, (e: any) => {
     expect(e).toBe(givenError);
     done();
@@ -707,6 +709,7 @@ test.each([400, 401, 403, 404, 429, 500, 502, 503])(
       appName: 'web',
     };
     const client = new UnleashClient(config);
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     client.on(EVENTS.ERROR, (e: any) => {
       expect(e).toStrictEqual({ type: 'HttpError', code: errorCode });
     });
@@ -742,7 +745,7 @@ test('Should publish update when state changes after refreshInterval', async () 
   jest.advanceTimersByTime(1001);
 });
 
-test(`If refresh is disabled should not fetch`, async () => {
+test('If refresh is disabled should not fetch', async () => {
   fetchMock.mockResponses(
     [JSON.stringify(data), { status: 200 }],
     [JSON.stringify(data), { status: 200 }]
@@ -1311,6 +1314,7 @@ test('Should emit impression events on isEnabled calls when impressionData is tr
     expect(isEnabled).toBe(true);
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   client.on(EVENTS.IMPRESSION, (event: any) => {
     expect(event.featureName).toBe('impression');
     expect(event.eventType).toBe('isEnabled');
@@ -1384,6 +1388,7 @@ test('Should emit impression events on getVariant calls when impressionData is t
     expect(isEnabled).toBe(true);
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   client.on(EVENTS.IMPRESSION, (event: any) => {
     expect(event.featureName).toBe('impression-variant');
     expect(event.eventType).toBe('getVariant');
@@ -1458,6 +1463,7 @@ test('Should emit impression events on isEnabled calls when impressionData is fa
     expect(isEnabled).toBe(true);
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   client.on(EVENTS.IMPRESSION, (event: any) => {
     try {
       expect(event.featureName).toBe('impression');
@@ -1501,6 +1507,7 @@ test('Should emit impression events on isEnabled calls when toggle is unknown an
     expect(isEnabled).toBe(true);
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   client.on(EVENTS.IMPRESSION, (event: any) => {
     expect(event.featureName).toBe('unknown');
     expect(event.eventType).toBe('isEnabled');
@@ -1540,6 +1547,7 @@ test('Should emit impression events on getVariant calls when impressionData is f
     expect(isEnabled).toBe(true);
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   client.on(EVENTS.IMPRESSION, (event: any) => {
     try {
       expect(event.featureName).toBe('impression-variant');
@@ -1666,6 +1674,7 @@ test('Should report metrics', async () => {
   jest.advanceTimersByTime(2500); // fist metric sent after 2 seconds
 
   const data = await new Promise((resolve) => {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     client.on(EVENTS.SENT, (data: any) => {
       resolve(data);
     });
@@ -1821,7 +1830,7 @@ test('should be in ready state if bootstrapping', (done) => {
         impressionData: false,
       },
     ],
-    fetch: async () => {},
+    fetch: async () => { },
   };
 
   const client = new UnleashClient(config);
@@ -1838,11 +1847,11 @@ describe('Experimental options togglesStorageTTL disabled', () => {
   let saveSpy: jest.SpyInstance;
 
   class Store implements IStorageProvider {
-    public async save() {
+    async save() {
       return Promise.resolve();
     }
 
-    public async get() {
+    async get() {
       return Promise.resolve([]);
     }
   }
@@ -1907,11 +1916,11 @@ describe('Experimental options togglesStorageTTL enabled', () => {
     let saveSpy: jest.SpyInstance;
 
     class Store implements IStorageProvider {
-      public async save() {
+      async save() {
         return Promise.resolve();
       }
 
-      public async get() {
+      async get() {
         return Promise.resolve([]);
       }
     }
@@ -1999,11 +2008,11 @@ describe('Experimental options togglesStorageTTL enabled', () => {
     let saveSpy: jest.SpyInstance;
 
     class Store implements IStorageProvider {
-      public async save() {
+      async save() {
         return Promise.resolve();
       }
 
-      public async get() {
+      async get() {
         return Promise.resolve([]);
       }
     }

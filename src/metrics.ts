@@ -10,6 +10,7 @@ export interface MetricsOptions {
   disableMetrics?: boolean;
   url: URL | string;
   clientKey: string;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   fetch: any;
   headerName: string;
   customHeaders?: Record<string, string>;
@@ -48,7 +49,9 @@ export default class Metrics {
   private disabled: boolean;
   private url: URL;
   private clientKey: string;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private timer: any;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private fetch: any;
   private headerName: string;
   private customHeaders: Record<string, string>;
@@ -101,7 +104,7 @@ export default class Metrics {
   stop() {
     if (this.timer) {
       clearTimeout(this.timer);
-      delete this.timer;
+      this.timer = undefined;
     }
   }
 
@@ -123,13 +126,10 @@ export default class Metrics {
     Object.entries(this.customHeaders)
       .filter(notNullOrUndefined)
       .forEach(([name, value]) => (headers[name] = value)); // FIXME: assignment operator
-
     return headers;
   }
 
   async sendMetrics(): Promise<void> {
-    /* istanbul ignore next if */
-
     const url = `${this.url}/client/metrics`;
     const payload = this.getPayload();
 

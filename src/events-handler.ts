@@ -1,7 +1,7 @@
 import type { IContext } from '.';
 import { v4 as uuidv4 } from 'uuid';
 
-class EventsHandler {
+export default class EventsHandler {
   private generateEventId() {
     return uuidv4();
   }
@@ -28,6 +28,7 @@ class EventsHandler {
         variant,
       };
     }
+
     return baseEvent;
   }
 
@@ -48,5 +49,3 @@ class EventsHandler {
     };
   }
 }
-
-export default EventsHandler;

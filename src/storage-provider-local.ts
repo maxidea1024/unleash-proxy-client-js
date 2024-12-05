@@ -7,6 +7,7 @@ export default class LocalStorageProvider implements IStorageProvider {
     this.prefix = name;
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   async save(name: string, data: any) {
     const jsonData = JSON.stringify(data);
     const key = `${this.prefix}:${name}`;
@@ -15,7 +16,6 @@ export default class LocalStorageProvider implements IStorageProvider {
     } catch (error: unknown) {
       console.error(error);
     }
-    return Promise.resolve();
   }
 
   get(name: string) {
